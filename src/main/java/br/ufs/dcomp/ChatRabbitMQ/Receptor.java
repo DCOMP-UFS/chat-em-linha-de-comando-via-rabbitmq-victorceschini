@@ -27,7 +27,7 @@ public class Receptor
     channel.queueDeclare(QUEUE_NAME, false,   false,     false,       null);
     
     while(true)
-    { // Se message == "" então prossiga para mandar msg, caso contrario imprima a message e faça continue
+    {
         Consumer consumer = new DefaultConsumer(channel) 
         {
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException
@@ -46,7 +46,7 @@ public class Receptor
                 System.out.println(dataFormatada + " " + message);
             }
         };
-                      //(queue-name, autoAck, consumer);    
+                          //(queue-name, autoAck, consumer);    
         channel.basicConsume(QUEUE_NAME, true,    consumer);
     } 
   }
