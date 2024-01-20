@@ -5,17 +5,14 @@ import com.rabbitmq.client.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Scanner;
 
 public class Receiver implements Runnable{
     Channel channel;
     String usuario;
-    Scanner sc;
 
-    public Receiver(Channel channel, String usuario, Scanner sc){
+    public Receiver(Channel channel, String usuario){
         this.channel = channel;
         this.usuario = usuario;
-        this.sc = sc;
     }
     @Override
     public void run() {
@@ -46,6 +43,7 @@ public class Receiver implements Runnable{
                     System.out.println('\n' + dataFormatada + " " + message);
                     System.out.print(">> ");
                 }
+
             };
             //(queue-name, autoAck, consumer);
             try {

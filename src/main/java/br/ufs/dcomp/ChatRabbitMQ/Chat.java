@@ -2,9 +2,6 @@ package br.ufs.dcomp.ChatRabbitMQ;
 
 import com.rabbitmq.client.*;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Scanner;
 
 import java.util.concurrent.ExecutorService;
@@ -12,7 +9,7 @@ import java.util.concurrent.Executors;
 
 public class Chat {
 
-  private static final String HOST = "54.226.130.243"; // Alterar
+  private static final String HOST = "35.175.194.86"; // Alterar
   private static final String USERNAME = "admin"; // Alterar
   private static final String PASSWORD = "password"; // Alterar
   private static final String VIRTUAL_HOST = "/";
@@ -37,10 +34,10 @@ public class Chat {
     ExecutorService executor = Executors.newFixedThreadPool(2);
 
     // Thread para recebimento de mensagens
-    executor.submit(new Receiver(channel, usuario, sc));
+    executor.submit(new Receiver(channel, usuario));
 
     // Thread para envio de mensagens
-    executor.submit(new Sender(channel, usuario, sc));
+    executor.submit(new Sender(channel, usuario));
   }
 
 }

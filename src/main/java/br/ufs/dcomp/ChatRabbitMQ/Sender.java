@@ -10,10 +10,9 @@ public class Sender implements Runnable{
     String usuario;
     Scanner sc;
 
-    public Sender(Channel channel, String usuario, Scanner sc){
+    public Sender(Channel channel, String usuario){
         this.channel = channel;
         this.usuario = usuario;
-        this.sc = sc;
     }
 
     @Override
@@ -24,6 +23,8 @@ public class Sender implements Runnable{
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        sc = new Scanner(System.in);
 
         String QUEUE_NAME = "";
         String remetente = "";
