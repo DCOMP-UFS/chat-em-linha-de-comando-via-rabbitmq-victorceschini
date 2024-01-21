@@ -5,29 +5,31 @@ import com.rabbitmq.client.Channel;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class Sender implements Runnable{
+public class Sender implements Runnable
+{
     Channel channel;
     String usuario;
+    String remetente;
+    String QUEUE_NAME;
     Scanner sc;
-
-    public Sender(Channel channel, String usuario){
+    
+    public Sender(Channel channel, String usuario)
+    {
         this.channel = channel;
         this.usuario = usuario;
+        remetente = "";
+        sc = new Scanner(System.in);
+        QUEUE_NAME = "";
     }
 
     @Override
-    public void run() {
-        //(queue-name, durable, exclusive, auto-delete, params);
-        try {
+    public void run() 
+    {
+        try {                 //(queue-name, durable, exclusive, auto-delete, params);
             channel.queueDeclare(usuario, false,   false,     false,       null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        sc = new Scanner(System.in);
-
-        String QUEUE_NAME = "";
-        String remetente = "";
 
         while(true)
         {
@@ -60,7 +62,7 @@ public class Sender implements Runnable{
             else
             {
                 System.out.print(">> ");
-
+                
                 remetente = sc.nextLine();
                 if(remetente.startsWith("@"))
                 {
@@ -68,7 +70,10 @@ public class Sender implements Runnable{
                 }
             }
         }
-
     }
-
+    
+    public String getRemetente()
+    {
+        return remetente;
+    }
 }
