@@ -4,14 +4,11 @@ import com.rabbitmq.client.*;
 
 import java.util.Scanner;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-public class Chat {
-
-  private static final String HOST = "35.175.194.86"; // Alterar
+public class Chat 
+{
+  private static final String HOST = "107.23.173.131"; // Alterar
   private static final String USERNAME = "admin"; // Alterar
-  private static final String PASSWORD = "password"; // Alterar
+  private static final String PASSWORD = "awspass123"; // Alterar
   private static final String VIRTUAL_HOST = "/";
 
   public static void main(String[] args) throws Exception
@@ -29,15 +26,9 @@ public class Chat {
     System.out.print("User: ");
     Scanner sc = new Scanner(System.in);
     String usuario = sc.nextLine();
+    
+    Receiver threadReceiver = new Receiver(channel, usuario);
 
-    // Executor para gerenciar threads
-    ExecutorService executor = Executors.newFixedThreadPool(2);
-
-    // Thread para recebimento de mensagens
-    executor.submit(new Receiver(channel, usuario));
-
-    // Thread para envio de mensagens
-    executor.submit(new Sender(channel, usuario));
+    new Thread(threadReceiver).start();
   }
-
 }
