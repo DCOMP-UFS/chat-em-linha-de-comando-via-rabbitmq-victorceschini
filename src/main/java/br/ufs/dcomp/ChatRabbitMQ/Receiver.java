@@ -6,22 +6,31 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Receiver implements Runnable{
+public class Receiver implements Runnable
+{
     Channel channel;
     String usuario;
+    String remetente;
 
-    public Receiver(Channel channel, String usuario){
+    public Receiver(Channel channel, String usuario)
+    {
         this.channel = channel;
         this.usuario = usuario;
+        this.remetente = "";
     }
+    
     @Override
-    public void run() {
-        //(queue-name, durable, exclusive, auto-delete, params)
-        try {
+    public void run() 
+    {
+        try {                 //(queue-name, durable, exclusive, auto-delete, params)
             channel.queueDeclare(usuario, false,   false,     false,       null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        
+        // Criando a Thread Sender dentro de Receiver para obter o remetente desse usuario
+        Sender threadSender = new Sender(channel, usuario);
+        new Thread(threadSender).start();
 
         while(true)
         {
@@ -41,12 +50,14 @@ public class Receiver implements Runnable{
                     String dataFormatada = formato.format(dataAtual);
 
                     System.out.println('\n' + dataFormatada + " " + message);
-                    System.out.print(">> ");
+                    
+                    // Imprime de volta a parte para enviar mensagem para um remetente
+                    remetente = threadSender.getRemetente();
+                    System.out.print(remetente + ">> ");
                 }
-
             };
-            //(queue-name, autoAck, consumer);
-            try {
+            
+            try {                 //(queue-name, autoAck, consumer);
                 channel.basicConsume(usuario, true,    consumer);
             } catch (IOException e) {
                 throw new RuntimeException(e);
