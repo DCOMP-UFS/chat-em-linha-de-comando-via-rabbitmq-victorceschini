@@ -1,3 +1,7 @@
+// Grupo:
+// - Victor Gabriel Ceschini Menezes
+// - Gabriel Miranda Oliva
+
 package br.ufs.dcomp.ChatRabbitMQ;
 
 import com.rabbitmq.client.*;
