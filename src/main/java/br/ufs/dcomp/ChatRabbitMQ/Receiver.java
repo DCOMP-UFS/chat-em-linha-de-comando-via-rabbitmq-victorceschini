@@ -10,13 +10,11 @@ public class Receiver implements Runnable
 {
     Channel channel;
     String usuario;
-    String remetente;
 
     public Receiver(Channel channel, String usuario)
     {
         this.channel = channel;
         this.usuario = usuario;
-        this.remetente = "";
     }
     
     @Override
@@ -27,10 +25,6 @@ public class Receiver implements Runnable
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        
-        // Criando a Thread Sender dentro de Receiver para obter o remetente desse usuario
-        Sender threadSender = new Sender(channel, usuario);
-        new Thread(threadSender).start();
 
         while(true)
         {
@@ -52,8 +46,7 @@ public class Receiver implements Runnable
                     System.out.println('\n' + dataFormatada + " " + message);
                     
                     // Imprime de volta a parte para enviar mensagem para um remetente
-                    remetente = threadSender.getRemetente();
-                    System.out.print(remetente + ">> ");
+                    System.out.print(Chat.getRemetente() + ">> ");
                 }
             };
             

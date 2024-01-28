@@ -7,19 +7,18 @@ import java.util.Scanner;
 
 public class Sender implements Runnable
 {
-    Channel channel;
-    String usuario;
-    String remetente;
-    String QUEUE_NAME;
-    Scanner sc;
+    private Channel channel;
+    private String usuario;
+    private String QUEUE_NAME;
+    private Scanner sc;
+    private String message_to_be_sent;
     
     public Sender(Channel channel, String usuario)
     {
         this.channel = channel;
         this.usuario = usuario;
-        remetente = "";
-        sc = new Scanner(System.in);
         QUEUE_NAME = "";
+        sc = new Scanner(System.in);
     }
 
     @Override
@@ -33,9 +32,10 @@ public class Sender implements Runnable
 
         while(true)
         {
+            // Caso ja tenha um usuario "@nome"
             if(QUEUE_NAME != "")
             {
-                System.out.print(remetente + ">> ");
+                System.out.print(Chat.getRemetente() + ">> ");
 
                 try {
                     channel.queueDeclare(QUEUE_NAME, false,   false,     false,       null);
@@ -43,12 +43,12 @@ public class Sender implements Runnable
                     throw new RuntimeException(e);
                 }
 
-                String message_to_be_sent = sc.nextLine();
+                message_to_be_sent = sc.nextLine();
 
                 if(message_to_be_sent.startsWith("@"))
                 {
-                    remetente = message_to_be_sent;
-                    QUEUE_NAME = remetente.substring(1);
+                    Chat.setRemetente(message_to_be_sent);
+                    QUEUE_NAME = message_to_be_sent.substring(1);
                     continue;
                 }
 
@@ -62,18 +62,15 @@ public class Sender implements Runnable
             else
             {
                 System.out.print(">> ");
-                
-                remetente = sc.nextLine();
-                if(remetente.startsWith("@"))
+
+                message_to_be_sent = sc.nextLine();
+                if(message_to_be_sent.startsWith("@"))
                 {
-                    QUEUE_NAME = remetente.substring(1);
+                    QUEUE_NAME = message_to_be_sent.substring(1);
+                    Chat.setRemetente(message_to_be_sent);
                 }
             }
         }
     }
-    
-    public String getRemetente()
-    {
-        return remetente;
-    }
+
 }
