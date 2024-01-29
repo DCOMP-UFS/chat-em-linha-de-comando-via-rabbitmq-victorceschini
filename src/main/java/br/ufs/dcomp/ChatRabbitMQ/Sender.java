@@ -95,20 +95,20 @@ public class Sender implements Runnable
 
     // determina o que fazer em cada comando digitado pelo usuario (comandos iniciam com "!")
     public void handleCommand(String message) throws IOException {
-        String[] slpitString = message.split(" ");
+        String[] splitString = message.split(" ");
+        String user = splitString[1];
+        String groupName = splitString[2];
         if(message.contains("addGroup")){
             // cria o grupo e adiciona o criador a ele
-            String groupName = slpitString[1];
             channel.exchangeDeclare(groupName, "fanout", true);
             channel.queueBind(usuario, groupName, "");
         } else if(message.contains("addUser")){
-            String user = slpitString[1];
-            String groupName = slpitString[2];
             channel.queueBind(user, groupName, "");
         } else if(message.contains("delFromGroup")) {
-
+            channel.queueUnbind(user, groupName, "");
         } else if(message.contains("removeGroup")){
-
+            System.out.println(groupName);
+            channel.exchangeDelete(groupName);
         } else{
             System.out.println("Comando invalido");
         }
