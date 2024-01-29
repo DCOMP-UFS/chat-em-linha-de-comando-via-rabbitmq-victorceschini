@@ -20,11 +20,6 @@ public class Receiver implements Runnable
     @Override
     public void run() 
     {
-        try {                 //(queue-name, durable, exclusive, auto-delete, params)
-            channel.queueDeclare(usuario, false,   false,     false,       null);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         while(true)
         {

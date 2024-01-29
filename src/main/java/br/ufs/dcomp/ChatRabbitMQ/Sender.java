@@ -1,5 +1,6 @@
 package br.ufs.dcomp.ChatRabbitMQ;
 
+import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 
 import java.io.IOException;
@@ -12,7 +13,6 @@ public class Sender implements Runnable
     private String usuario;
     private String QUEUE_NAME;
     private Scanner sc;
-    private String message_to_be_sent;
     
     public Sender(Channel channel, String usuario)
     {
@@ -25,11 +25,6 @@ public class Sender implements Runnable
     @Override
     public void run() 
     {
-        try {                 //(queue-name, durable, exclusive, auto-delete, params);
-            channel.queueDeclare(usuario, false,   false,     false,       null);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
         while(true)
         {
@@ -38,38 +33,38 @@ public class Sender implements Runnable
             {
                 System.out.print(Chat.getRemetente() + ">> ");
 
+                String message_to_be_sent = sc.nextLine();
                 try {
-                    channel.queueDeclare(QUEUE_NAME, false,   false,     false,       null);
+                    handleInput(message_to_be_sent);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-
-                message_to_be_sent = sc.nextLine();
-                handleInput(message_to_be_sent);
             }
             else
             {
                 System.out.print(">> ");
 
-                message_to_be_sent = sc.nextLine();
-                handleInput(message_to_be_sent);
+                String message_to_be_sent = sc.nextLine();
+                try {
+                    handleInput(message_to_be_sent);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
 
     // determina o que sera feito com o input do usuario
-    public void handleInput(String message){
+    public void handleInput(String message) throws IOException {
         char inicio = message.charAt(0);
         switch(inicio){
             case '@':
+            case '#':
                 QUEUE_NAME = message.substring(1);
                 Chat.setRemetente(message);
                 break;
             case '!':
-
-                break;
-            case '#':
-
+                handleCommand(message);
                 break;
             default:
                 sendMessage(message);
@@ -84,6 +79,28 @@ public class Sender implements Runnable
             channel.basicPublish("",       QUEUE_NAME, null,  final_message.getBytes("UTF-8"));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    // determina o que fazer em cada comando digitado pelo usuario (comandos iniciam com "!")
+    public void handleCommand(String message) throws IOException {
+        String[] slpitString = message.split(" ");
+        if(message.contains("addGroup")){
+            // cria o grupo e adiciona o criador a ele
+            String groupName = slpitString[1];
+            System.out.println("grupo: " + groupName);
+            channel.exchangeDeclare(groupName, "fanout", true);
+            channel.queueBind(usuario, groupName, "");
+        } else if(message.contains("addUser")){
+            String user = slpitString[1];
+            String groupName = slpitString[2];
+            channel.queueBind(user, groupName, "");
+        } else if(message.contains("delFromGroup")) {
+
+        } else if(message.contains("removeGroup")){
+
+        } else{
+            System.out.println("Comando invalido");
         }
     }
 }

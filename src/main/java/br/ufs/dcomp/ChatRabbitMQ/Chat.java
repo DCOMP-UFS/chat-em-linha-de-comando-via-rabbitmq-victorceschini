@@ -32,6 +32,9 @@ public class Chat
     Scanner sc = new Scanner(System.in);
     String usuario = sc.nextLine();
 
+    // cria a fila do usuario
+    channel.queueDeclare(usuario, false,   false,     false,       null);
+
     // cria e executa as threads de sender receiver
     ExecutorService executor = Executors.newFixedThreadPool(2);
     executor.submit(new Receiver(channel, usuario));
@@ -45,5 +48,4 @@ public class Chat
   public static void setRemetente(String r){
     remetente = r;
   }
-
 }
