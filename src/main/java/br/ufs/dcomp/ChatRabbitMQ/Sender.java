@@ -67,29 +67,18 @@ public class Sender implements Runnable
                 handleCommand(message);
                 break;
             default:
-                if(Chat.getRemetente().startsWith("#")) sendToGroup(message);
-                else sendToUser(message);
-
+                sendMessage(message);
         }
     }
 
-    // monta e publica a nova mensagem para um unico usuario
-    public void sendToUser(String message) {
+    // monta e publica a nova mensagem para um grupo ou usuario
+    public void sendMessage(String message) throws IOException {
         String final_message = usuario + " diz: " + message;
-        try {
+        // verifica se a mensagem eh privada ou para um grupo
+        if(Chat.getRemetente().startsWith("@")){
             channel.basicPublish("", QUEUE_NAME, null,  final_message.getBytes("UTF-8"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    // monta e publica a nova mensagem para um grupo
-    public void sendToGroup(String message){
-        String final_message = usuario + " diz: " + message;
-        try {
+        } else{
             channel.basicPublish(QUEUE_NAME, "", null,  final_message.getBytes("UTF-8"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
