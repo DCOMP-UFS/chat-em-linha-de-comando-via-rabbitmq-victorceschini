@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 
 public class Chat
 {
-  private static final String HOST = "54.173.7.197"; // Alterar
+  private static final String HOST = "52.87.173.224"; // Alterar
   private static final String USERNAME = "admin"; // Alterar
   private static final String PASSWORD = "password"; // Alterar
   private static final String VIRTUAL_HOST = "/";
@@ -32,7 +32,7 @@ public class Chat
     Scanner sc = new Scanner(System.in);
     String usuario = sc.nextLine();
 
-    // cria a fila do usuario
+    // cria a fila do usuario e torna ela duravel
     channel.queueDeclare(usuario, false,   false,     false,       null);
 
     // cria e executa as threads de sender receiver

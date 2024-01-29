@@ -67,16 +67,27 @@ public class Sender implements Runnable
                 handleCommand(message);
                 break;
             default:
-                sendMessage(message);
+                if(Chat.getRemetente().startsWith("#")) sendToGroup(message);
+                else sendToUser(message);
 
         }
     }
 
-    // monta e publica a nova mensagem
-    public void sendMessage(String message) {
+    // monta e publica a nova mensagem para um unico usuario
+    public void sendToUser(String message) {
         String final_message = usuario + " diz: " + message;
         try {
-            channel.basicPublish("",       QUEUE_NAME, null,  final_message.getBytes("UTF-8"));
+            channel.basicPublish("", QUEUE_NAME, null,  final_message.getBytes("UTF-8"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // monta e publica a nova mensagem para um grupo
+    public void sendToGroup(String message){
+        String final_message = usuario + " diz: " + message;
+        try {
+            channel.basicPublish(QUEUE_NAME, "", null,  final_message.getBytes("UTF-8"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -88,7 +99,6 @@ public class Sender implements Runnable
         if(message.contains("addGroup")){
             // cria o grupo e adiciona o criador a ele
             String groupName = slpitString[1];
-            System.out.println("grupo: " + groupName);
             channel.exchangeDeclare(groupName, "fanout", true);
             channel.queueBind(usuario, groupName, "");
         } else if(message.contains("addUser")){
