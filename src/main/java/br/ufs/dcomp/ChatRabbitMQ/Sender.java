@@ -6,12 +6,19 @@ import com.rabbitmq.client.Channel;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Scanner;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import com.google.protobuf.ByteString;
+
 
 public class Sender implements Runnable
 {
     private Channel channel;
     private String usuario;
     private String QUEUE_NAME;
+    private String data;
+    private String hora;
+    private String remetente;
     private Scanner sc;
     
     public Sender(Channel channel, String usuario)
@@ -19,13 +26,15 @@ public class Sender implements Runnable
         this.channel = channel;
         this.usuario = usuario;
         QUEUE_NAME = "";
+        data = "";
+        hora = "";
+        remetente = "";
         sc = new Scanner(System.in);
     }
 
     @Override
     public void run() 
     {
-
         while(true)
         {
             // Caso ja tenha um usuario "@nome"
@@ -58,27 +67,34 @@ public class Sender implements Runnable
     public void handleInput(String message) throws IOException {
         char inicio = message.charAt(0);
         switch(inicio){
+            // Caso tenha operador @ ou #, atualiza-se o QUEUE_NAME e remetente
             case '@':
             case '#':
                 QUEUE_NAME = message.substring(1);
                 Chat.setRemetente(message);
                 break;
+            // Caso tenha operador !, chama-se a funcao para lidar com os comandos
             case '!':
                 handleCommand(message);
                 break;
+            // Caso padrao que corresponde a enviar uma mensagem
             default:
                 sendMessage(message);
+                break;
         }
     }
 
     // monta e publica a nova mensagem para um grupo ou usuario
     public void sendMessage(String message) throws IOException {
-        String final_message = usuario + " diz: " + message;
+        
+        // Serializando a mensagem pelo metodo sendText
+        byte[] buffer = sendText(message);
+        
         // verifica se a mensagem eh privada ou para um grupo
         if(Chat.getRemetente().startsWith("@")){
-            channel.basicPublish("", QUEUE_NAME, null,  final_message.getBytes("UTF-8"));
+            channel.basicPublish("", QUEUE_NAME, null,  buffer);
         } else{
-            channel.basicPublish(QUEUE_NAME, "", null,  final_message.getBytes("UTF-8"));
+            channel.basicPublish(QUEUE_NAME, "", null,  buffer);
         }
     }
 
@@ -108,5 +124,56 @@ public class Sender implements Runnable
         } else{
             System.out.println("Comando invalido");
         }
+    }
+    
+    // Metodo para serializar uma mensagem que nao contem arquivos ou imagens
+    public byte[] sendText(String message)
+    {
+        byte[] byteArray = message.getBytes();
+        
+        // Agrupando dados do conteudo da mensagem
+        // sabendo que contem apenas texto, sem imagens ou arquivos
+        MensagemProto.Conteudo.Builder conteudo = MensagemProto.Conteudo.newBuilder();
+        conteudo.setTipo("text/plain");
+        conteudo.setCorpo(ByteString.copyFrom(byteArray));
+        
+        // Obtém a data atual
+        Date dataAtual = new Date();
+
+        // Define o formato desejado
+        SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy','HH:mm");
+
+        // Formata a data para o formato desejado
+        String dataFormatada = formato.format(dataAtual);
+
+        String[] dataSplit = dataFormatada.split(",");
+
+        data = dataSplit[0];
+        hora = dataSplit[1];
+        
+        // Agrupando dados da mensagem com o conteudo acima
+        MensagemProto.Mensagem.Builder builderMensagem = MensagemProto.Mensagem.newBuilder();
+        builderMensagem.setEmissor(usuario);
+        builderMensagem.setData(data);
+        builderMensagem.setHora(hora);
+        builderMensagem.setConteudo(conteudo);
+        
+        remetente = Chat.getRemetente();
+        if(remetente.charAt(0) == '#')
+        {
+            builderMensagem.setGrupo(remetente);
+        }
+        else
+        {
+            builderMensagem.setGrupo("");
+        }
+        
+        // Obtendo a mensagem
+        MensagemProto.Mensagem mensagemUsuario = builderMensagem.build();
+        
+        // Serializando a mensagem
+        byte[] buffer = mensagemUsuario.toByteArray();
+        
+        return buffer;
     }
 }
