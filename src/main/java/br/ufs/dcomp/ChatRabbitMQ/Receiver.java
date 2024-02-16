@@ -5,6 +5,7 @@ import com.rabbitmq.client.*;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.nio.file.*;
 import com.google.protobuf.ByteString;
 
 
@@ -16,7 +17,10 @@ public class Receiver implements Runnable
     String data;
     String hora;
     String grupo;
-    String mensagem_recebida = "";
+    String filename;
+    String mensagem_recebida;
+    String root_path;
+    byte[] corpoMensagem;
 
     public Receiver(Channel channel, String usuario)
     {
@@ -27,6 +31,8 @@ public class Receiver implements Runnable
         hora = "";
         mensagem_recebida = "";
         grupo = "";
+        filename = "";
+        root_path = "/home/ubuntu/environment/downloads/";
     }
     
     @Override
@@ -45,15 +51,38 @@ public class Receiver implements Runnable
                     emissor = mensagem.getEmissor();
                     if(!emissor.equals(usuario))
                     {
-                       data = mensagem.getData();
+                        data = mensagem.getData();
                         hora = mensagem.getHora();
                         grupo = mensagem.getGrupo();
                         MensagemProto.Conteudo conteudo = mensagem.getConteudo();
-                    
-                        mensagem_recebida = conteudo.getCorpo().toStringUtf8();
-                    
+                        filename = conteudo.getNome();
+                        
                         System.out.print("\n(" + data + " às " + hora + ") ");
-                        System.out.println(emissor + grupo + " diz: " + mensagem_recebida);
+                        
+                        // Se for apenas uma mensagem
+                        if(filename.equals(""))
+                        {
+                            mensagem_recebida = conteudo.getCorpo().toStringUtf8();
+                    
+                            System.out.println(emissor + grupo + " diz: " + mensagem_recebida);
+                        }
+                        else // Se for um arquivo
+                        {
+                            corpoMensagem = conteudo.getCorpo().toByteArray();
+                            Path default_path = Paths.get(root_path);
+                            
+                            // Se o diretorio default nao existe, criar um
+                            if(!Files.exists(default_path))
+                            {
+                                Files.createDirectories(Paths.get(root_path));
+                            }
+                            
+                            
+                            Path path = Paths.get(root_path + filename);
+                            Files.write(path, corpoMensagem);
+                            
+                            System.out.println("Arquivo \"" + filename + "\" recebido de " + emissor);
+                        }
 
 
                         // Imprime de volta a parte para enviar mensagem para um remetente
