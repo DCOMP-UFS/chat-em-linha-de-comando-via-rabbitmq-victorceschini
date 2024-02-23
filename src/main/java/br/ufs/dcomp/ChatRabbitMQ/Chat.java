@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 
 public class Chat
 {
-  private static final String HOST = "52.87.173.224"; // Alterar
+  private static final String HOST = "54.145.22.169"; // Alterar
   private static final String USERNAME = "admin"; // Alterar
   private static final String PASSWORD = "password"; // Alterar
   private static final String VIRTUAL_HOST = "/";

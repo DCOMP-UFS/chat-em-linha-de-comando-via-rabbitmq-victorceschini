@@ -120,28 +120,35 @@ public class Sender implements Runnable
         String groupName = "";
         String user = "";
         String path = "";
-        
-        if(comando.equals("!addGroup")){
-            // cria o grupo e adiciona o criador a ele
-            groupName = splitString[1];
-            channel.exchangeDeclare(groupName, "fanout", true);
-            channel.queueBind(usuario, groupName, "");
-        } else if(comando.equals("!addUser")){
-            user = splitString[1];
-            groupName = splitString[2];
-            channel.queueBind(user, groupName, "");
-        } else if(comando.equals("!delFromGroup")) {
-            user = splitString[1];
-            groupName = splitString[2];
-            channel.queueUnbind(user, groupName, "");
-        } else if(comando.equals("!removeGroup")){
-            groupName = splitString[1];
-            channel.exchangeDelete(groupName);
-        } else if(comando.equals("!upload")){
-            path = splitString[1];
-            sendMessage(path, true);
-        } else{
-            System.out.println("Comando invalido");
+
+        switch (comando){
+            case "!addGroup":
+                // cria o grupo e adiciona o criador a ele
+                groupName = splitString[1];
+                channel.exchangeDeclare(groupName, "fanout", true);
+                channel.queueBind(usuario, groupName, "");
+                break;
+            case "!addUser":
+                user = splitString[1];
+                groupName = splitString[2];
+                channel.queueBind(user, groupName, "");
+                break;
+            case "!delFromGroup":
+                user = splitString[1];
+                groupName = splitString[2];
+                channel.queueUnbind(user, groupName, "");
+                break;
+            case "!removeGroup":
+                groupName = splitString[1];
+                channel.exchangeDelete(groupName);
+                break;
+            case "!upload":
+                path = splitString[1];
+                sendMessage(path, true);
+                break;
+            default:
+                System.out.println("Comando invalido");
+                break;
         }
     }
     
