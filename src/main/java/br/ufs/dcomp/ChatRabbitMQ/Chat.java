@@ -6,7 +6,6 @@ package br.ufs.dcomp.ChatRabbitMQ;
 
 import com.rabbitmq.client.*;
 
-import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,6 +17,7 @@ public class Chat
   private static final String PASSWORD = "password"; // Alterar
   private static final String VIRTUAL_HOST = "/";
   private static String remetente = ""; // variavel global para guardar o remetente atual
+  private static String usuario;
 
   public static void main(String[] args) throws Exception
   {
@@ -33,7 +33,7 @@ public class Chat
 
     System.out.print("User: ");
     Scanner sc = new Scanner(System.in);
-    String usuario = sc.nextLine();
+    usuario = sc.nextLine();
 
     // cria a fila do usuario e torna ela duravel
     channel.queueDeclare(usuario, false,   false,     false,       null);
@@ -53,4 +53,6 @@ public class Chat
   public static void setRemetente(String r){
     remetente = r;
   }
+
+  public static String getUsuario() { return usuario; }
 }

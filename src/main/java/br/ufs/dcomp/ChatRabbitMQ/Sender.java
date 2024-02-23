@@ -10,6 +10,9 @@ import java.util.Scanner;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.nio.file.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.google.protobuf.ByteString;
 
 
@@ -110,18 +113,13 @@ public class Sender implements Runnable
     }
 
     public void sendFile(String message) throws  IOException{
-        byte[] buffer = new byte[0];
-
-        // Serializando a mensagem pelo metodo serializeFile
         System.out.println("Enviando \"" + message + "\" para " + Chat.getRemetente());
+
+        byte[] buffer = new byte[0];
         buffer = serializeFile(message);
 
-        // verifica se a mensagem eh privada ou para um grupo
-        if(Chat.getRemetente().startsWith("@")){
-            fileChannel.basicPublish("", QUEUE_NAME, null,  buffer);
-        } else{
-            fileChannel.basicPublish(QUEUE_NAME, "", null,  buffer);
-        }
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+        executor.submit(new fileSender(buffer, QUEUE_NAME, fileChannel));
     }
 
     // determina o que fazer em cada comando digitado pelo usuario (comandos iniciam com "!")
