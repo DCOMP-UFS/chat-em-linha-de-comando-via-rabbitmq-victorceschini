@@ -16,6 +16,7 @@ import com.google.protobuf.ByteString;
 public class Sender implements Runnable
 {
     private Channel channel;
+    private Channel fileChannel;
     private String usuario;
     private String QUEUE_NAME;
     private String data;
@@ -24,9 +25,10 @@ public class Sender implements Runnable
     private String root_path;
     private Scanner sc;
     
-    public Sender(Channel channel, String usuario)
+    public Sender(Channel channel, Channel fileChannel, String usuario)
     {
         this.channel = channel;
+        this.fileChannel = fileChannel;
         this.usuario = usuario;
         QUEUE_NAME = "";
         data = "";
@@ -83,26 +85,20 @@ public class Sender implements Runnable
                 break;
             // Caso padrao que corresponde a enviar uma mensagem
             default:
-                sendMessage(message, false);
+                sendMessage(message);
                 break;
         }
     }
 
     // monta e publica a nova mensagem para um grupo ou usuario
-    public void sendMessage(String message, Boolean eh_arquivo) throws IOException {
+    public void sendMessage(String message) throws IOException {
         byte[] buffer = new byte[0];
-        
-        if(eh_arquivo){
-            // Serializando a mensagem pelo metodo serializeFile
-            System.out.println("Enviando \"" + message + "\" para " + Chat.getRemetente());
-            buffer = serializeFile(message);
-        } else{
-            // Serializando a mensagem pelo metodo serializeText
-            try{
-                buffer = serializeText(message);
-            } catch (Exception e){
-                System.out.println("Arquivo nao encontrado!");
-            }
+
+        // Serializando a mensagem pelo metodo serializeText
+        try{
+            buffer = serializeText(message);
+        } catch (Exception e){
+            System.out.println("Arquivo nao encontrado!");
         }
         
         // verifica se a mensagem eh privada ou para um grupo
@@ -110,6 +106,21 @@ public class Sender implements Runnable
             channel.basicPublish("", QUEUE_NAME, null,  buffer);
         } else{
             channel.basicPublish(QUEUE_NAME, "", null,  buffer);
+        }
+    }
+
+    public void sendFile(String message) throws  IOException{
+        byte[] buffer = new byte[0];
+
+        // Serializando a mensagem pelo metodo serializeFile
+        System.out.println("Enviando \"" + message + "\" para " + Chat.getRemetente());
+        buffer = serializeFile(message);
+
+        // verifica se a mensagem eh privada ou para um grupo
+        if(Chat.getRemetente().startsWith("@")){
+            fileChannel.basicPublish("", QUEUE_NAME, null,  buffer);
+        } else{
+            fileChannel.basicPublish(QUEUE_NAME, "", null,  buffer);
         }
     }
 
@@ -144,7 +155,7 @@ public class Sender implements Runnable
                 break;
             case "!upload":
                 path = splitString[1];
-                sendMessage(path, true);
+                sendFile(path);
                 break;
             default:
                 System.out.println("Comando invalido");
