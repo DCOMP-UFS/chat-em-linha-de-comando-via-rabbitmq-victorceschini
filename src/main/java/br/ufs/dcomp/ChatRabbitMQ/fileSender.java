@@ -6,12 +6,13 @@ import java.io.IOException;
 
 public class fileSender implements Runnable{
     private final String queueName;
-    private final byte[] buffer;
+    private byte[] buffer = new byte[0];
     private Channel fileChannel;
 
     public fileSender(byte[] buffer, String queueName, Channel fileChannel){
         this.buffer = buffer;
         this.queueName = queueName;
+        this.fileChannel = fileChannel;
     }
 
     @Override

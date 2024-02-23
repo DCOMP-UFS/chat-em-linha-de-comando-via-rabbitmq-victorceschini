@@ -120,6 +120,7 @@ public class Sender implements Runnable
 
         ExecutorService executor = Executors.newFixedThreadPool(5);
         executor.submit(new fileSender(buffer, QUEUE_NAME, fileChannel));
+        //executor.close();
     }
 
     // determina o que fazer em cada comando digitado pelo usuario (comandos iniciam com "!")
