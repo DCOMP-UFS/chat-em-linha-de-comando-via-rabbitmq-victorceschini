@@ -132,7 +132,7 @@ public class Sender implements Runnable
         buffer = serializeFile(message);
 
         ExecutorService executor = Executors.newFixedThreadPool(5);
-        executor.submit(new fileSender(buffer, QUEUE_NAME, fileChannel));
+        executor.submit(new FileSender(buffer, QUEUE_NAME, fileChannel));
         //executor.close();
     }
 
@@ -170,7 +170,8 @@ public class Sender implements Runnable
                 sendFile(path);
                 break;
             case "!listUsers":
-                listUsers();
+                groupName = splitString[1];
+                listUsers(groupName);
                 break;
             case "!listGroups":
                 listGroups();
@@ -281,14 +282,14 @@ public class Sender implements Runnable
         return buffer;
     }
 
-    public void listUsers() throws IOException, InterruptedException, URISyntaxException {
-        String url = "http://" + Chat.getHost() + ":15672" + "/api/queues";
+    public void listUsers(String group) throws IOException, InterruptedException, URISyntaxException {
+        String url = "http://" + Chat.getHost() + ":15672" + "/api/exchanges/%2F/" + group + "/bindings/source";
         String json = doRequest(url);
         getUsers(json);
     }
 
     public void listGroups() throws IOException, URISyntaxException, InterruptedException {
-        String url = "http://" + Chat.getHost() + ":15672" + "/api/exchanges";
+        String url = "http://" + Chat.getHost() + ":15672" + "/api/queues/%2F/" + Chat.getUsuario() + "/bindings";
         String json = doRequest(url);
         getGroups(json);
     }
@@ -316,7 +317,7 @@ public class Sender implements Runnable
         ArrayList<JsonObject> queues = gson.fromJson(json, queueListType);
 
         for(JsonObject queue : queues){
-            System.out.print(queue.get("name") + ", ");
+            System.out.print(queue.get("destination") + ", ");
         }
 
         System.out.println();
@@ -328,7 +329,9 @@ public class Sender implements Runnable
         ArrayList<JsonObject> queues = gson.fromJson(json, queueListType);
 
         for(JsonObject queue : queues){
-            if(queue.get("user_who_performed_action").toString().contains("admin")) System.out.print(queue.get("name") + ", ");
+            //if(queue.get("user_who_performed_action").toString().contains("admin")){
+                System.out.print(queue.get("source") + ", "); 
+            //} 
         }
 
         System.out.println();
