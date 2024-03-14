@@ -1,5 +1,8 @@
 package br.ufs.dcomp.ChatRabbitMQ;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonToken;
@@ -8,11 +11,13 @@ import com.rabbitmq.client.Channel;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Scanner;
 import java.util.Date;
@@ -167,7 +172,7 @@ public class Sender implements Runnable
             case "!listUsers":
                 listUsers();
                 break;
-            case "listGroups":
+            case "!listGroups":
                 listGroups();
                 break;
             default:
@@ -279,11 +284,13 @@ public class Sender implements Runnable
     public void listUsers() throws IOException, InterruptedException, URISyntaxException {
         String url = "http://" + Chat.getHost() + ":15672" + "/api/queues";
         String json = doRequest(url);
-        System.out.println(getNames(json));
+        getElement(json);
     }
 
-    public void listGroups(){
-
+    public void listGroups() throws IOException, URISyntaxException, InterruptedException {
+        String url = "http://" + Chat.getHost() + ":15672" + "/api/exchanges";
+        String json = doRequest(url);
+        getElement(json);
     }
 
     public String doRequest(String url) throws IOException, InterruptedException, URISyntaxException {
@@ -303,11 +310,15 @@ public class Sender implements Runnable
         return resposta.body();
     }
 
-    public String getNames(String json) throws IOException {
-        String names = "";
+    public void getElement(String json) throws IOException {
+        Gson gson = new Gson();
+        Type queueListType = new TypeToken<ArrayList<JsonObject>>(){}.getType();
+        ArrayList<JsonObject> queues = gson.fromJson(json, queueListType);
 
-        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
-        System.out.println(jsonObject.get("name"));
-        return names;
+        for(JsonObject queue : queues){
+            System.out.print(queue.get("name") + ", ");
+        }
+
+        System.out.println();
     }
 }
