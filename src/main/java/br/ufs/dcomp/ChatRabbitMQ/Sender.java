@@ -1,11 +1,19 @@
 package br.ufs.dcomp.ChatRabbitMQ;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonToken;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.io.File;
+import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Base64;
 import java.util.Scanner;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -14,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.google.protobuf.ByteString;
-
+import com.google.gson.stream.JsonReader;
 
 public class Sender implements Runnable
 {
@@ -54,7 +62,7 @@ public class Sender implements Runnable
                 String message_to_be_sent = sc.nextLine();
                 try {
                     handleInput(message_to_be_sent);
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -65,7 +73,7 @@ public class Sender implements Runnable
                 String message_to_be_sent = sc.nextLine();
                 try {
                     handleInput(message_to_be_sent);
-                } catch (IOException e) {
+                } catch (IOException | InterruptedException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -73,7 +81,7 @@ public class Sender implements Runnable
     }
 
     // determina o que sera feito com o input do usuario
-    public void handleInput(String message) throws IOException {
+    public void handleInput(String message) throws IOException, InterruptedException, URISyntaxException {
         char inicio = message.charAt(0);
         switch(inicio){
             // Caso tenha operador @ ou #, atualiza-se o QUEUE_NAME e remetente
@@ -124,7 +132,7 @@ public class Sender implements Runnable
     }
 
     // determina o que fazer em cada comando digitado pelo usuario (comandos iniciam com "!")
-    public void handleCommand(String message) throws IOException {
+    public void handleCommand(String message) throws IOException, InterruptedException, URISyntaxException {
         String[] splitString = message.split(" ");
         String comando = splitString[0];
         String groupName = "";
@@ -155,6 +163,12 @@ public class Sender implements Runnable
             case "!upload":
                 path = splitString[1];
                 sendFile(path);
+                break;
+            case "!listUsers":
+                listUsers();
+                break;
+            case "listGroups":
+                listGroups();
                 break;
             default:
                 System.out.println("Comando invalido");
@@ -260,5 +274,40 @@ public class Sender implements Runnable
         // Serializando a mensagem
         byte[] buffer = createMensagem(data, hora, conteudo);
         return buffer;
+    }
+
+    public void listUsers() throws IOException, InterruptedException, URISyntaxException {
+        String url = "http://" + Chat.getHost() + ":15672" + "/api/queues";
+        String json = doRequest(url);
+        System.out.println(getNames(json));
+    }
+
+    public void listGroups(){
+
+    }
+
+    public String doRequest(String url) throws IOException, InterruptedException, URISyntaxException {
+        HttpClient client = HttpClient.newHttpClient();
+
+        String credentials = Chat.getUsername() + ":" + Chat.getPassword();
+        String headerValue = "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes());
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(url))
+                .header("Authorization", headerValue)
+                .build();
+
+        HttpResponse<String> resposta = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        return resposta.body();
+    }
+
+    public String getNames(String json) throws IOException {
+        String names = "";
+
+        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+        System.out.println(jsonObject.get("name"));
+        return names;
     }
 }

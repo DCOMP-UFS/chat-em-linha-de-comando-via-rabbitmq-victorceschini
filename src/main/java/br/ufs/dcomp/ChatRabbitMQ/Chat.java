@@ -12,7 +12,7 @@ import java.util.concurrent.Executors;
 
 public class Chat
 {
-  private static final String HOST = "3.91.60.165"; // Alterar
+  private static final String HOST = "3.84.226.49"; // Alterar
   private static final String USERNAME = "admin"; // Alterar
   private static final String PASSWORD = "password"; // Alterar
   private static final String VIRTUAL_HOST = "/";
@@ -55,4 +55,16 @@ public class Chat
   }
 
   public static String getUsuario() { return usuario; }
+
+  public static String getHost(){
+    return HOST;
+  }
+
+  public static String getUsername(){
+    return USERNAME;
+  }
+
+  public static String getPassword(){
+    return PASSWORD;
+  }
 }
