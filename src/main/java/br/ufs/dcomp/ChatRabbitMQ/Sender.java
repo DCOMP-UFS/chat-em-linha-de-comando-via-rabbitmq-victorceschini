@@ -284,13 +284,13 @@ public class Sender implements Runnable
     public void listUsers() throws IOException, InterruptedException, URISyntaxException {
         String url = "http://" + Chat.getHost() + ":15672" + "/api/queues";
         String json = doRequest(url);
-        getElement(json);
+        getUsers(json);
     }
 
     public void listGroups() throws IOException, URISyntaxException, InterruptedException {
         String url = "http://" + Chat.getHost() + ":15672" + "/api/exchanges";
         String json = doRequest(url);
-        getElement(json);
+        getGroups(json);
     }
 
     public String doRequest(String url) throws IOException, InterruptedException, URISyntaxException {
@@ -310,13 +310,25 @@ public class Sender implements Runnable
         return resposta.body();
     }
 
-    public void getElement(String json) throws IOException {
+    public void getUsers(String json) throws IOException {
         Gson gson = new Gson();
         Type queueListType = new TypeToken<ArrayList<JsonObject>>(){}.getType();
         ArrayList<JsonObject> queues = gson.fromJson(json, queueListType);
 
         for(JsonObject queue : queues){
             System.out.print(queue.get("name") + ", ");
+        }
+
+        System.out.println();
+    }
+
+    public void getGroups(String json) throws IOException {
+        Gson gson = new Gson();
+        Type queueListType = new TypeToken<ArrayList<JsonObject>>(){}.getType();
+        ArrayList<JsonObject> queues = gson.fromJson(json, queueListType);
+
+        for(JsonObject queue : queues){
+            if(queue.get("user_who_performed_action").toString().contains("admin")) System.out.print(queue.get("name") + ", ");
         }
 
         System.out.println();
