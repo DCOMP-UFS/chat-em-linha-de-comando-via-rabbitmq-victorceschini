@@ -132,7 +132,7 @@ public class Sender implements Runnable
         buffer = serializeFile(message);
 
         ExecutorService executor = Executors.newFixedThreadPool(5);
-        executor.submit(new FileSender(buffer, QUEUE_NAME, fileChannel));
+        executor.submit(new fileSender(buffer, QUEUE_NAME, fileChannel));
         //executor.close();
     }
 
